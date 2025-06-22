@@ -22,7 +22,8 @@
   {
     "id": 5,
     "username": "krish",
-    "password": "pass69"
+    "password": "pass69",
+    "data": "some data"
   },
   {
     "id": 6,

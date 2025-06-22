@@ -1,18 +1,22 @@
 const express = require('express');
 const fs = require('fs');
-const axios = require('axios');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const authenticateToken =  (req, res, next) => {
+const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.sendStatus(403);
+    
+    if (!token) {
+        return res.status(403).json({ message: 'No token provided' });
+    }
+
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) {
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
         req.user = user;
-        req.username = user.username;
         next();
     });
 }
@@ -74,32 +78,31 @@ router.post('/login', (req, res) => {
         { id: user.id, username: user.username },
         process.env.ACCESS_TOKEN_SECRET
     );
-    
-    // Send only one response
     res.json({ 
         message: `Welcome back, ${user.username}!`,
         accessToken 
     });
 });
 
-router.get('/profile', authenticateToken, (req, res) => { 
+router.get('/main', authenticateToken, (req, res) => { 
     let users = [];
     try {
         const data = fs.readFileSync(usersFilePath, 'utf8');
         users = JSON.parse(data);
     } 
     catch (err) {
-        return res.status(500).send('Error reading users file');
+        return res.status(500).json({ message: 'Error reading users file' });
     }
     
-    const user = users.find(u => u.username === req.username);
+    const user = users.find(u => u.username === req.user.username);
     if (!user) {
-        return res.status(404).send('User not found');
+        return res.status(404).json({ message: 'User not found' });
     }
     
     res.json({
         id: user.id,
-        username: user.username
+        username: user.username,
+        data: user.data
     });
 })
 

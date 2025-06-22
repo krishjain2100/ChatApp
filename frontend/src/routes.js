@@ -9,7 +9,7 @@ const routes = [
   {path: '/login', element: <Login/>},
   {path: '/register', element: <Register/>},
   {path: '/forgotPassword', element: <ForgotPassword/>},
-  {path: '/chats', element: <Main/>}
+  {path: '/main', element: <Main/>}
 ]
 
 export default routes;
