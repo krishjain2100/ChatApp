@@ -13,6 +13,7 @@ const postRegister = async (username, password) => {
         const data = await response.text();
         if (!response.ok) throw new Error(data);
         alert(data);
+        window.location.href = `./login`;
     } 
     catch (error) {
         alert(error.message);
