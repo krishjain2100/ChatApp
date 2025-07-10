@@ -1,6 +1,8 @@
+import { API_ENDPOINTS } from '../config/constants.js';
+
 const postRegister = async (username, password) => {
     try {
-        const response = await fetch('http://localhost:3000/auth/register', {
+        const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({

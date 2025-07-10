@@ -1,5 +1,7 @@
+import { API_ENDPOINTS } from '../config/constants.js';
+
 export default async function userData(accessToken) {
-  const res = await fetch("http://localhost:3000/auth/main", {
+  const res = await fetch(API_ENDPOINTS.AUTH.MAIN, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -7,5 +9,5 @@ export default async function userData(accessToken) {
     },
   });
   if (!res.ok)  throw new Error(`Fetch failed with status ${res.status}`);
-  return res.json();  // this promise resolves with your `{ username, data }`
+  return res.json();
 }

@@ -1,6 +1,8 @@
+import { API_ENDPOINTS } from '../config/constants.js';
+
 const postLogin = async (username, password) => {
     try {
-        const response = await fetch('http://localhost:3000/auth/login', {
+        const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
             method: 'POST',
             headers: {'Content-Type': 'application/json',},
             body: JSON.stringify({
