@@ -10,9 +10,9 @@ const postRegister = async (username, password) => {
                 password: password,
             }),
         });
-        const data = await response.text();
-        if (!response.ok) throw new Error(data);
-        alert(data);
+        const data = await response.json(); 
+        if (!response.ok) throw new Error(data.message || 'Registration failed');
+        alert(data.message); 
         window.location.href = `./login`;
     } 
     catch (error) {

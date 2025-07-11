@@ -1,0 +1,16 @@
+.header {
+    padding: 15px 20px;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid #0056b3;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
