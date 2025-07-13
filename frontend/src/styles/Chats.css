@@ -6,21 +6,6 @@
     background-color: #ffffff;
 }
 
-.search-container {
-    padding: 15px;
-    width: 350px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.search-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    outline: none;
-    font-size: 14px;
-}
-
 .chats-list {
     flex: 1;
     overflow-y: auto;

@@ -5,20 +5,6 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
-const authenticateToken = (req, res, next) => {
-    // express converts the header keys to lowercase
-    const authHeader = req.headers['authorization'];
-    const token = authHeader?.split(' ')[1];
-    if (!token) return res.status(403).json({ message: 'No token provided' });
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, res) => {
-        // res contains the payload set during jwt.sign + the iat (issued at) timestamp
-        if (err) return res.status(403).json({ message: 'Invalid or expired token' });
-        req.user = res;
-        next();
-    });
-}
-
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ message: 'Username and password are required' });
@@ -57,14 +43,5 @@ router.post('/login', async (req, res) => {
     });
 });
 
-router.get('/main', authenticateToken, async (req, res) => { 
-    const { id } = req.user; 
-    const existing = await User.findById(id);
-    if (!existing) return res.status(404).json({ message: 'User not found' });
-    res.json({
-        id: existing._id,
-        username: existing.username,
-    });
-})
 
 module.exports = router;

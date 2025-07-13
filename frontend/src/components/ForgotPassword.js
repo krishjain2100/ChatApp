@@ -1,17 +1,28 @@
 import { useState } from 'react';
-
+import '../styles/Auth.css';
 
 const ForgotPassword = () => {
     const [username, setUsername] = useState('');
+    
     return (
-        <div>
-            <p style = {{textAlign: 'center', fontSize: '30px'}} > Forgot Password </p>
-            <div style={{ display: 'flex', flexDirection: 'column', width: '300px', margin: 'auto' }}>
-                <div style={{display: 'flex', flexDirection: 'row', textAlign: 'center', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', gap: '10px'}}>
-                    <div style={{ flex: 0.5 }}> Username: </div>
-                    <input style = {{flex: 1.5}} type="text" onChange={(e)=>setUsername(e.target.value)}/> 
-                </div>
-                <button type="submit"> Send Link </button>
+        <div className="auth-container">
+            <div className="auth-card">
+                <h2 className="auth-title">Forgot Password</h2>
+                <form className="auth-form">
+                    <div className="form-group">
+                        <label htmlFor="username">Username:</label>
+                        <input 
+                            id="username"
+                            type="text" 
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="form-input"
+                        />
+                    </div>
+                    <button type="submit" className="auth-button">
+                        Send Reset Link
+                    </button>
+                </form>
             </div>
         </div>
     );

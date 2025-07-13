@@ -12,13 +12,11 @@ const postLogin = async (username, password) => {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Login failed');
-        if (data.accessToken) localStorage.setItem('accessToken', data.accessToken);
-        else throw new Error('No access token received');
-        window.location.href = `./main`; 
+        return data;
     } 
     catch (error) {
         console.error('Login error:', error); 
-        alert(error.message);
+        throw error; // Re-throw the error so the component can handle it
     }
 };
 

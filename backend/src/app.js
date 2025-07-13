@@ -4,12 +4,14 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const server = express();
 const authRoutes = require('./routes/auth');
+const messageRoutes = require('./routes/message');
 const User = require('./models/users.model');
 
 server.use(cors({origin: process.env.FRONTEND_URL || 'http://localhost:3001'}));
 
 server.use(express.json());
 server.use('/auth', authRoutes);
+server.use('/message', messageRoutes);
 
 
 mongoose.connect(process.env.MONGO_URI)

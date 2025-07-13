@@ -4,7 +4,10 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: `${API_BASE_URL}/auth/login`,
     REGISTER: `${API_BASE_URL}/auth/register`,
-    MAIN: `${API_BASE_URL}/auth/main`,
+  },
+  MESSAGE: {
+    CONVERSATIONS: `${API_BASE_URL}/message/conversations`,
+    MESSAGES: `${API_BASE_URL}/message/messages`,
   },
   USERS: `${API_BASE_URL}/users`,
 };
