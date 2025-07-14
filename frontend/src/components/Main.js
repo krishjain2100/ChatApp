@@ -8,10 +8,9 @@ import '../styles/Main.css';
 
 const Main = () => {
   const [userData, setUserData] = useState(null);
-  const { user, logout, loading } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
     if (!user) {
       logout(); 
       return; 
@@ -20,9 +19,9 @@ const Main = () => {
       id: user.id,
       username: user.username
     });
-  }, [user, loading, logout]);
+  }, [user, logout]);
 
-  if (loading || !userData) return <p>Loading...</p>;
+  if (!userData) return <p>Loading...</p>;
 
   return (
     <div className="main-container">

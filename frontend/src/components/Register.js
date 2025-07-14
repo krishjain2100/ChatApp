@@ -1,24 +1,33 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import postRegister from '../api/register';
 import '../styles/Auth.css';
+import validator from 'validator';
 
 const Register = () => {
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (username.trim() === '' || password === '' || confirmPassword === '') {  alert('All fields are required');  return;}
+        if (username.trim() === '' || email.trim() === '' || password === '' || confirmPassword === '') { alert('All fields are required'); return;}
         if (password !== confirmPassword) { alert('Passwords do not match'); return; }
-        if (password.length < 6) { alert('Password must be at least 6 characters long'); return;}
+        if (!validator.isEmail(email)) {alert('Please enter a valid email address'); return;}
+        
         setIsLoading(true);
         try {
-            await postRegister(username, password);
+            const result = await postRegister(username, email, password);
+            if (result.success) {
+                alert(result.message);
+                navigate('/login');
+            }
         } catch (error) {
             console.error('Registration failed:', error);
-            alert('Registration failed. Please try again.');
+            alert(error.message || 'Registration failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -39,6 +48,18 @@ const Register = () => {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Choose a username"
+                            disabled={isLoading}
+                        />
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="form-label">Email</label>
+                        <input 
+                            className="form-input"
+                            type="text" 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email address"
                             disabled={isLoading}
                         />
                     </div>

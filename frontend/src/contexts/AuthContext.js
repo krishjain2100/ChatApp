@@ -5,27 +5,31 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
     return context;
 };
 
+const getAuth = () => {
+    const Token = localStorage.getItem('accessToken');
+    if (Token) {
+        const decoded = decodeToken(Token);
+        return { User: decoded, Token };
+    }
+    return { User: null, Uoken: null };
+};
+
+
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { User, Token } = getAuth();
+    const [user, setUser] = useState(User);
+    const [token, setToken] = useState(Token);
 
     useEffect(() => {
         const storedToken = localStorage.getItem('accessToken');;
         if (storedToken) {
             const decoded = decodeToken(storedToken);
-            if (decoded) {
-                setUser(decoded);
-                setToken(storedToken);
-            }
+            setUser(decoded);
+            setToken(storedToken);
         }
-        setLoading(false);
     }, []);
 
     const login = (accessToken) => {
@@ -42,15 +46,11 @@ export const AuthProvider = ({ children }) => {
         window.location.href = '/login';
     };
 
-    const isAuthenticated = () => user !== null && token !== null;
-
     const value = {
         user,
         token,
         login,
         logout,
-        isAuthenticated,
-        loading
     };
 
     return (

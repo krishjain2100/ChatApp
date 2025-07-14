@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import postLogin from '../api/login';
 import '../styles/Auth.css';
@@ -8,6 +9,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -18,9 +20,9 @@ const Login = () => {
         setIsLoading(true);
         try {
             const data = await postLogin(username, password);
-            if (data && data.accessToken) {
+            if (data?.accessToken) {
                 login(data.accessToken);
-                window.location.href = `./main`; 
+                navigate('/main'); 
             } else {
                 alert('Login failed - Invalid response from server');
             }
@@ -33,7 +35,7 @@ const Login = () => {
     };
 
     const handleForgotPassword = () => {
-        window.location.href = './forgotPassword';
+        navigate('/forgotPassword');
     };
 
     return (
