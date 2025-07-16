@@ -15,7 +15,9 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (user && token) {
-            const newSocket = io('http://localhost:3000');
+            const newSocket = io('http://localhost:3000', {
+                auth: { token: token }
+            });
             newSocket.on('connect', () => {
                 newSocket.emit('user_online', user.id);
             });

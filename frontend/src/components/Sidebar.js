@@ -42,11 +42,8 @@ const Sidebar = () => {
     useEffect(() => {
         if (!user || !socket) return;
         fetchChats();
-        const handleConversationUpdate = (data) => {
-            if (data.userId === user.id) fetchChats();
-        };
-        socket.on('conversation_updated', handleConversationUpdate);
-        return () => socket.off('conversation_updated', handleConversationUpdate);
+        socket.on('new_message', () => fetchChats());
+        return () => socket.off('new_message', () => fetchChats());
     }, [user, socket, fetchChats]);
     
     return (

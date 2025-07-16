@@ -1,12 +1,15 @@
 const Message = require('../models/messages.model');
 const Conversation = require('../models/conversations.model');
 const User = require('../models/users.model');
+const authenticateSocket = require('../utils/socket-authenticate');
 
 const handleSocketConnection = (io) => {
+
+  io.use(authenticateSocket);
+
   io.on('connection', (socket) => {
-    socket.on('user_online', async (userId) => {
-      socket.userId = userId;
-      await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+    socket.on('user_online', async () => {
+      await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
     });
     socket.on('join_chat', (conversationId) => socket.join(conversationId));
     socket.on('send_message', async (messageData) => {
@@ -27,13 +30,9 @@ const handleSocketConnection = (io) => {
               timestamp: new Date()
             }
           },
-          { new: true }
-        );
+        ); 
 
         io.to(messageData.conversationId).emit('new_message', savedMessage);
-        io.to(messageData.conversationId).emit('conversation_updated', {
-          userId: messageData.senderId,
-        });
       } catch (error) {
         console.error('Error sending message:', error);
       }
