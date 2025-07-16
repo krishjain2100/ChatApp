@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
@@ -7,6 +7,7 @@ import formatTime from '../utils/formatTime';
 import SidebarItems from './SidebarItems';
 import NewChatModal from './NewChatModal';
 import createNewChat from '../api/newchat';
+import useDebounce from '../hooks/useDebounce';
 import '../styles/Chats.css';
 
 const Sidebar = () => {
@@ -17,6 +18,14 @@ const Sidebar = () => {
     const selectedChatId = searchParams.get('conversation'); //tuple
     const { user, token } = useAuth();
     const { socket } = useSocket();
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedQuery = useDebounce(searchQuery, 300);
+
+    const filtered = useMemo(() => {
+        const q = debouncedQuery.toLowerCase();
+        return chats.filter(item =>
+        item.name.toLowerCase().startsWith(q)
+    )}, [chats, debouncedQuery]);
 
     const handleChatClick = (chatId) => setSearchParams({ conversation: chatId });
     const handleNewChatClick = () => setOpen(true);
@@ -88,8 +97,17 @@ const Sidebar = () => {
                     New Chat
                 </button>
             </div>
+            <div className="search-section">
+                <input
+                    type="text"
+                    placeholder="Search conversations..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input"
+                />
+            </div>
             <div className="chats-list">
-                {chats.map(chat => (
+                {filtered.map(chat => (
                    <SidebarItems 
                         key={chat.id} 
                         chat={chat}

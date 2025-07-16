@@ -99,7 +99,6 @@
 
 .new-chat-section {
     padding: 15px;
-    border-bottom: 2px solid #f0f0f0;
 }
 
 .new-chat-btn {
@@ -215,4 +214,31 @@
 .modal-btn-create:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+}
+
+.search-section {
+    padding: 0 15px 15px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e1e1e1;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    border-color: #007bff;
+    background-color: white;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.search-input::placeholder {
+    color: #999;
 }
