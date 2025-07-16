@@ -16,6 +16,10 @@ const UserSchema = mongoose.Schema(
         password: {
             type: String,
             required: true
+        },
+        lastSeen: {
+            type: Date,
+            default: () => new Date('2025-07-13T00:00:00.000Z')
         }
     },
     { 

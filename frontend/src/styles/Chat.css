@@ -13,6 +13,7 @@
 }
 
 .chat-header-avatar {
+    position: relative;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -24,6 +25,17 @@
     font-weight: bold;
     margin-right: 12px;
     font-size: 16px;
+}
+
+.chat-header-avatar .online-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background-color: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
 }
 
 .chat-header-info {
@@ -38,9 +50,19 @@
 }
 
 .chat-header-status {
-    margin: 0;
-    font-size: 12px;
+    margin: 2px 0 0 0;
+    font-size: 13px;
     color: #666;
+}
+
+.chat-header-status.online {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.chat-header-status.offline {
+    color: #999;
+    font-style: italic;
 }
 
 .messages-area {

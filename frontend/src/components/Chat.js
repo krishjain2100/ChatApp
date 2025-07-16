@@ -1,15 +1,20 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import { useSearchParams } from 'react-router-dom';
 import getChat from '../api/chat';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
+import formatTime from '../utils/formatTime';
 import '../styles/Chat.css';
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [conversationInfo, setConversationInfo] = useState(null);
+    const [newMessage, setNewMessage] = useState('');
     const [searchParams] = useSearchParams();
     const conversationId = searchParams.get('conversation');
     const { user, token } = useAuth();
+    const { socket } = useSocket();
+    const messagesEndRef = useRef(null);
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -20,17 +25,19 @@ const Chat = () => {
             }
             const data = await getChat(conversationId, token);
             
-            if (data.conversation && data.conversation.participants) {
+            if (data.conversation) {
                 const otherParticipant = data.conversation.participants.find(
                     participant => participant._id !== user.id
                 );
-                
-                if (otherParticipant) {
-                    setConversationInfo({
-                        name: otherParticipant.username,
-                        avatar: otherParticipant.username.charAt(0).toUpperCase()
-                    });
-                }
+                const lastSeen = new Date(otherParticipant.lastSeen);
+                const isOnline = lastSeen && (new Date() - lastSeen) < 2 * 60 * 1000; 
+                setConversationInfo({
+                    name: otherParticipant.username,
+                    avatar: otherParticipant.username.charAt(0).toUpperCase(),
+                    lastSeen: lastSeen,
+                    isOnline: isOnline,
+                    lastSeenText: isOnline ? 'Online' : (lastSeen ? `Last seen ${formatTime(lastSeen)}` : '')
+                });
             }
             const messages = data.messages || [];
             setMessages(messages.map(msg => ({
@@ -44,6 +51,47 @@ const Chat = () => {
         fetchMessages();
     }, [conversationId, user, token]); 
 
+    useEffect(() => {
+        if (!conversationId || !user || !socket) return;
+        socket.emit('join_chat', conversationId);
+
+        const handleNewMessage = (message) => {
+            const formattedMessage = {
+                id: message._id,
+                text: message.content,
+                sender: message.senderId.username || 'Unknown',
+                time: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                isMe: message.senderId === user.id
+            };
+            setMessages(prev => [...prev, formattedMessage]);
+        };
+
+        socket.on('new_message', handleNewMessage);
+
+        return () => {
+            socket.off('new_message', handleNewMessage);
+            socket.emit('leave_chat', conversationId);
+        };
+    }, [conversationId, user, socket]);
+
+    const sendMessage = () => {
+        if (!newMessage.trim() || !socket || !user) return;
+        const messageData = {
+            conversationId,
+            senderId: user.id,
+            content: newMessage.trim()
+        };
+        socket.emit('send_message', messageData);
+        setNewMessage('');
+    };
+
+    const handleKeyPress = (e) =>  {if (e.key === 'Enter') sendMessage()}
+    const scrollToBottom = () =>  messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
     return (
         <div className="chat-wrapper">
             {conversationId && (
@@ -51,11 +99,15 @@ const Chat = () => {
                     <div className="chat-header">
                         <div className="chat-header-avatar"> 
                             {conversationInfo?.avatar || '?'} 
+                            {conversationInfo?.isOnline && <div className="online-indicator"></div>}
                         </div>
                         <div className="chat-header-info">
                             <h3 className="chat-header-name"> 
                                 {conversationInfo?.name || 'Unknown User'} 
                             </h3>
+                            <p className={`chat-header-status ${conversationInfo?.isOnline ? 'online' : 'offline'}`}>
+                                {conversationInfo?.lastSeenText || ''}
+                            </p>
                         </div>
                     </div>
 
@@ -68,6 +120,7 @@ const Chat = () => {
                                 </div>
                             </div>
                         ))}
+                        <div ref={messagesEndRef} /> 
                     </div>
 
                     <div className="message-input-area">
@@ -75,8 +128,11 @@ const Chat = () => {
                             type="text" 
                             placeholder="Type a message..." 
                             className="message-input"
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            onKeyPress={handleKeyPress}
                         />
-                        <button className="send-button"> Send </button>
+                        <button className="send-button" onClick={sendMessage}> Send </button>
                     </div>
                 </>
             )}
