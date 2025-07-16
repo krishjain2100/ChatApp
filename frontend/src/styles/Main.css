@@ -18,17 +18,19 @@
 }
 
 .user-profile {
-    padding: 15px 20px;
+    padding: 20px 24px;
     border-bottom: 1px solid #e0e0e0;
     background-color: #f8f9fa;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    height: 88px;
+    box-sizing: border-box;
 }
 
-
 .user-avatar {
-    width: 35px;
-    height: 35px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background-color: #28a745;
     display: flex;
@@ -36,8 +38,8 @@
     justify-content: center;
     color: white;
     font-weight: bold;
-    margin-right: 10px;
-    font-size: 14px;
+    margin-right: 16px;
+    font-size: 18px;
 }
 
 .user-details {
@@ -53,6 +55,20 @@
 
 .chats-container {
     flex: 1;
+    min-height: 0;
+}
+
+.chat-area {
+    flex: 1;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.chats-container {
+    flex: 1;
+    min-height: 0;
 }
 
 .chat-area {

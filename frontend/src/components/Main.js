@@ -3,7 +3,6 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Chat from "./Chat";
 import { useAuth } from "../contexts/AuthContext";
-import UserProfile from "./UserProfile";
 import '../styles/Main.css';
 
 const Main = () => {
@@ -27,7 +26,6 @@ const Main = () => {
     <div className="main-container">
       <div className="sidebar">
         <Header/>
-        <UserProfile userData={userData} />
         <div className="chats-container"> <Sidebar /> </div>
       </div>
       <div className="chat-area"> <Chat /> </div>

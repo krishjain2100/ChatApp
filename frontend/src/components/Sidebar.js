@@ -98,13 +98,16 @@ const Sidebar = () => {
                 </button>
             </div>
             <div className="search-section">
-                <input
-                    type="text"
-                    placeholder="Search conversations..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="search-input"
-                />
+                <div className="search-container">
+                    <span className="search-icon">🔍</span>
+                    <input
+                        type="text"
+                        placeholder="Search conversations..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
             </div>
             <div className="chats-list">
                 {filtered.map(chat => (

@@ -93,19 +93,19 @@ const Chat = () => {
     }, [messages]);
 
     return (
-        <div className="chat-wrapper">
+        <div className="conversation-wrapper">
             {conversationId && (
                 <>
-                    <div className="chat-header">
-                        <div className="chat-header-avatar"> 
+                    <div className="conversation-header">
+                        <div className="conversation-avatar"> 
                             {conversationInfo?.avatar || '?'} 
                             {conversationInfo?.isOnline && <div className="online-indicator"></div>}
                         </div>
-                        <div className="chat-header-info">
-                            <h3 className="chat-header-name"> 
+                        <div className="conversation-header-info">
+                            <h3 className="conversation-header-name"> 
                                 {conversationInfo?.name || 'Unknown User'} 
                             </h3>
-                            <p className={`chat-header-status ${conversationInfo?.isOnline ? 'online' : 'offline'}`}>
+                            <p className={`conversation-header-status ${conversationInfo?.isOnline ? 'online' : 'offline'}`}>
                                 {conversationInfo?.lastSeenText || ''}
                             </p>
                         </div>

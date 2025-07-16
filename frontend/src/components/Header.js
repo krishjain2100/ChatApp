@@ -6,14 +6,18 @@ const Header = () => {
 
     return (
         <header className="header">
-            <h1 className="header-title"> All Chats </h1>
-            <div className="header-user">
+            <div className="header-content">
                 {user && (
-                    <>
-                        <span className="header-user-name">Welcome, {user.username}</span>
-                        <button onClick={logout} className="logout-btn">Logout</button>
-                    </>
+                    <div className="user-info">
+                        <div className="user-avatar">
+                            {user.username.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="username">{user.username}</span>
+                    </div>
                 )}
+                <button onClick={logout} className="logout-btn">
+                    Logout
+                </button>
             </div>
         </header>
     );
