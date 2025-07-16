@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   MESSAGE: {
     CONVERSATIONS: `${API_BASE_URL}/message/conversations`,
     MESSAGES: `${API_BASE_URL}/message/messages`,
+    NEW_CHAT: `${API_BASE_URL}/message/new`,
   },
   USERS: `${API_BASE_URL}/users`,
 };

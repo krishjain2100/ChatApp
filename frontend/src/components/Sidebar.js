@@ -5,16 +5,49 @@ import { useSocket } from '../contexts/SocketContext';
 import getChats from '../api/sidebar';
 import formatTime from '../utils/formatTime';
 import SidebarItems from './SidebarItems';
+import NewChatModal from './NewChatModal';
+import createNewChat from '../api/newchat';
 import '../styles/Chats.css';
 
 const Sidebar = () => {
     const [chats, setChats] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [username, setUsername] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedChatId = searchParams.get('conversation'); //tuple
     const { user, token } = useAuth();
     const { socket } = useSocket();
 
-    const handleChatClick = (chatId) => setSearchParams({ conversation: chatId});
+    const handleChatClick = (chatId) => setSearchParams({ conversation: chatId });
+    const handleNewChatClick = () => setOpen(true);
+    const handleClose = () => {setOpen(false); setUsername('');};
+
+    const handleCreateChat = async () => {
+        try {
+            const { response, data } = await createNewChat(username, token);
+            if (!response || !data) {
+                alert('Failed to create chat. Please try again.');
+                return;
+            }    
+            if (response.status === 201) {
+                setSearchParams({ conversation: data._id });
+                fetchChats();
+                handleClose();
+            } 
+            else if (response.status === 409) {
+                alert(data.message || 'Chat already exists with this user');
+                setSearchParams({ conversation: data.conversationId });
+                handleClose();
+            }
+            else {
+                alert(data.message || 'Failed to create chat. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error in handleCreateChat:', error);
+            alert('Failed to create chat. Please try again.');
+        }
+    };
+
     const fetchChats = useCallback (async () => {
         if (!token) {
             setChats([]);
@@ -47,7 +80,14 @@ const Sidebar = () => {
     }, [user, socket, fetchChats]);
     
     return (
+        <>
         <div className="chats-wrapper">
+            <div className="new-chat-section">
+                <button className="new-chat-btn" onClick={handleNewChatClick}>
+                    <span className="new-chat-icon">+</span>
+                    New Chat
+                </button>
+            </div>
             <div className="chats-list">
                 {chats.map(chat => (
                    <SidebarItems 
@@ -58,7 +98,15 @@ const Sidebar = () => {
                     />
                 ))}
             </div>
-        </div>
+        </div> 
+        <NewChatModal
+            open={open}
+            handleClose={handleClose}
+            username={username}
+            setUsername={setUsername}
+            handleCreateChat={handleCreateChat}
+        />
+        </>
     );
 }
 

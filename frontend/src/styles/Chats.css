@@ -96,3 +96,123 @@
     min-width: 18px;
     text-align: center;
 }
+
+.new-chat-section {
+    padding: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.new-chat-btn {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.new-chat-btn:hover {
+    background-color: #0056b3;
+}
+
+.new-chat-icon {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.modal-container {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    outline: none;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.modal-title {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-description {
+    margin: 0 0 20px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-input {
+    padding: 12px;
+    border: 2px solid #e1e1e1;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.modal-input:focus {
+    border-color: #007bff;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-btn-cancel {
+    background-color: #f8f9fa;
+    color: #666;
+    border: 1px solid #e1e1e1;
+}
+
+.modal-btn-cancel:hover {
+    background-color: #e9ecef;
+}
+
+.modal-btn-create {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-btn-create:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.modal-btn-create:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

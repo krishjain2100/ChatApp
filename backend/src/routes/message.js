@@ -42,5 +42,31 @@ router.get('/messages/:conversationId', async (req, res) => {
     }
 });
 
+router.post('/new', async (req, res) => {
+    const { participant } = req.body;
+    const { id: userId, username} = req.user;
+    if (!participant) return res.status(400).json({ message: 'Participant is required' });
+    if (participant === username)  return res.status(400).json({ message: 'You cannot include yourself as a participant' });
+    const participantUser = await User.findOne({ username: participant });
+    if (!participantUser) return res.status(400).json({ message: 'User not found' });
+    const existingConversation = await Conversation.findOne({
+        participants: { $all: [userId, participantUser._id] }
+    });
+    if (existingConversation) {
+        return res.status(409).json({ 
+            message: 'Conversation already exists',
+            conversationId: existingConversation._id
+        });
+    }
+    const conversation = new Conversation({
+        participants: [userId, participantUser._id],
+        lastMessage: null
+    });
+    await conversation.save();
+    const populatedConversation = await Conversation.findById(conversation._id).populate('participants', 'username lastSeen');
+    res.status(201).json(populatedConversation);
+});
+
+
 module.exports = router;
 
