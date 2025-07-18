@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 import { API_ENDPOINTS } from "../config/constants";
 
 const createNewChat = async (participant, token) => {
@@ -10,12 +11,11 @@ const createNewChat = async (participant, token) => {
             },
             body: JSON.stringify({ participant })
         });
-        
         const data = await response.json();
         return { response, data };
         
     } catch (error) {
-        console.error('Error creating new chat:', error);
+        toast.error('Error creating new chat:', error);
         return { response: null, data: null };
     }
 };

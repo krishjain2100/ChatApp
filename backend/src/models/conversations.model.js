@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
 const ConversationSchema = mongoose.Schema(
     {
-        participants: {
-            type: [mongoose.Schema.Types.ObjectId],
-            ref: 'User',
-            required: true
-        },
+        participants: [{
+            _id: false,
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            lastOpened: {
+                type: Date,
+                default: Date.now
+            }
+        }],
         lastMessage: {
             content: {
                 type: String

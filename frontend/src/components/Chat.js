@@ -24,11 +24,8 @@ const Chat = () => {
                 return;
             }
             const data = await getChat(conversationId, token);
-            
-            if (data.conversation) {
-                const otherParticipant = data.conversation.participants.find(
-                    participant => participant._id !== user.id
-                );
+            if (data.participants) {
+                const otherParticipant = data.participants.find(participant => participant._id !== user.id);
                 const lastSeen = new Date(otherParticipant.lastSeen);
                 const isOnline = lastSeen && (new Date() - lastSeen) < 2 * 60 * 1000; 
                 setConversationInfo({

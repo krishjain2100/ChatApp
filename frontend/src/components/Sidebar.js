@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
+import { toast } from 'react-toastify';
 import getChats from '../api/sidebar';
 import formatTime from '../utils/formatTime';
 import SidebarItems from './SidebarItems';
@@ -34,44 +35,38 @@ const Sidebar = () => {
     const handleCreateChat = async () => {
         try {
             const { response, data } = await createNewChat(username, token);
-            if (!response || !data) {
-                alert('Failed to create chat. Please try again.');
-                return;
-            }    
+            if (!response || !data) {toast.error('Failed to create chat. Please try again.'); return;}
             if (response.status === 201) {
                 setSearchParams({ conversation: data._id });
                 fetchChats();
                 handleClose();
-            } 
-            else if (response.status === 409) {
-                alert(data.message || 'Chat already exists with this user');
+            } else if (response.status === 409) {
+                toast.info(data.message || 'Chat already exists with this user');
                 setSearchParams({ conversation: data.conversationId });
                 handleClose();
+            } else {
+                toast.error(data.message || 'Failed to create chat. Please try again.');
             }
-            else {
-                alert(data.message || 'Failed to create chat. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error in handleCreateChat:', error);
-            alert('Failed to create chat. Please try again.');
-        }
+        } catch (error) {toast.error('Failed to create chat. Please try again.');}
     };
 
-    const fetchChats = useCallback (async () => {
+    const fetchChats = async () => {
         if (!token) {
             setChats([]);
             return;
         }
         try { 
-            const data = await getChats(token); 
+            const data = await getChats(token);
             if (data) { 
                 const formattedChats = data.map(chat => {
                     const otherParticipant = chat.participants.find(p => p.username !== user.username); 
                     return {
-                        id: chat._id,
+                        _id: chat._id,
                         name: otherParticipant.username,
                         lastMessage: chat.lastMessage ? chat.lastMessage.content : 'No messages yet',
                         time: chat.lastMessage ? formatTime(new Date(chat.lastMessage.timestamp)) : '',
+                        lastMessageBy: chat.lastMessage ? (chat.lastMessage.sentBy === user.id ? 'You' : otherParticipant.username) : '',
+                        unreadCount: chat.unreadCount || 0,
                     };
                 });
                 setChats(formattedChats);
@@ -79,13 +74,17 @@ const Sidebar = () => {
         } catch (error) {
             console.error('Error in fetchChats:', error);
         }
-    }, [token, user]);
+    };
 
     useEffect(() => {
         if (!user || !socket) return;
         fetchChats();
         socket.on('new_message', () => fetchChats());
-        return () => socket.off('new_message', () => fetchChats());
+        socket.on('joined_chat', () => fetchChats());
+        return () => {
+            socket.off('new_message', () => fetchChats());
+            socket.off('joined_chat', () => fetchChats());
+        };
     }, [user, socket, fetchChats]);
     
     return (
@@ -112,7 +111,7 @@ const Sidebar = () => {
             <div className="chats-list">
                 {filtered.map(chat => (
                    <SidebarItems 
-                        key={chat.id} 
+                        key={chat._id} 
                         chat={chat}
                         selectedChatId={selectedChatId}
                         handleChatClick={handleChatClick}

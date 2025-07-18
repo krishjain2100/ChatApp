@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import postRegister from '../api/register';
-import '../styles/Auth.css';
+import { toast } from 'react-toastify';
 import validator from 'validator';
+import '../styles/Auth.css';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -14,23 +15,19 @@ const Register = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (username.trim() === '' || email.trim() === '' || password === '' || confirmPassword === '') { alert('All fields are required'); return;}
-        if (password !== confirmPassword) { alert('Passwords do not match'); return; }
-        if (!validator.isEmail(email)) {alert('Please enter a valid email address'); return;}
+        if (username.trim() === '' || email.trim() === '' || password === '' || confirmPassword === '') { toast.error('All fields are required'); return;}
+        if (password !== confirmPassword) { toast.error('Passwords do not match'); return; }
+        if (!validator.isEmail(email)) {toast.error('Please enter a valid email address'); return;}
         
         setIsLoading(true);
         try {
             const result = await postRegister(username, email, password);
             if (result.success) {
-                alert(result.message);
+                toast.success(result.message);
                 navigate('/login');
             }
-        } catch (error) {
-            console.error('Registration failed:', error);
-            alert(error.message || 'Registration failed. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
+        } catch (error) {toast.error(error.message || 'Registration failed. Please try again.');} 
+        finally {setIsLoading(false);}
     };
 
     return (

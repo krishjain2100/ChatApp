@@ -11,7 +11,14 @@ const handleSocketConnection = (io) => {
     socket.on('user_online', async () => {
       await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
     });
-    socket.on('join_chat', (conversationId) => socket.join(conversationId));
+    socket.on('join_chat', async (conversationId) => {
+      socket.join(conversationId);
+      await Conversation.updateOne(
+        { _id: conversationId, 'participants.user': socket.userId },
+        { $set: { 'participants.$.lastOpened': new Date() }} 
+      ).catch(err => console.error('Error updating lastOpened:', err));
+      socket.emit('joined_chat', conversationId);
+    });
     socket.on('send_message', async (messageData) => {
       try {
         const newMessage = new Message({

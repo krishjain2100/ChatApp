@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import postLogin from '../api/login';
+import { toast } from 'react-toastify';
 import '../styles/Auth.css';
 
 const Login = () => {
@@ -14,7 +15,7 @@ const Login = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (username.trim() === '' || password === '') { 
-            alert('Username and Password cannot be empty'); 
+            toast.error('Username and Password cannot be empty'); 
             return;
         }
         setIsLoading(true);
@@ -24,11 +25,11 @@ const Login = () => {
                 login(data.accessToken);
                 navigate('/main'); 
             } else {
-                alert('Login failed - Invalid response from server');
+                toast.error('Login failed - Invalid response from server');
             }
         } catch (error) {
             console.error('Login failed:', error);
-            alert(error.message || 'Login failed. Please check your credentials and try again.');
+            toast.error(error.message || 'Login failed. Please check your credentials and try again.');
         } finally {
             setIsLoading(false);
         }

@@ -128,26 +128,37 @@
 }
 
 .chat-last-message {
+    display: block; 
     margin: 0;
     font-size: 14px;
     color: #6c757d;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 280px;
+    max-width: 200px;
     font-weight: 400;
     line-height: 1.4;
 }
 
+.chat-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .unread-badge {
-    background-color: #007bff;
-    color: white;
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 12px;
-    font-weight: bold;
-    min-width: 18px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 24px;
     text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+    letter-spacing: 0.02em;
+    border: none;
+    display: inline-block;
+    transition: background 0.3s, box-shadow 0.3s;
 }
 
 .new-chat-section {
