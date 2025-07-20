@@ -10,15 +10,13 @@ const handleSocketConnection = (io) => {
   io.on('connection', (socket) => {
     socket.on('user_online', async () => {
       await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
+      socket.join(socket.userId);
     });
+
     socket.on('join_chat', async (conversationId) => {
       socket.join(conversationId);
-      await Conversation.updateOne(
-        { _id: conversationId, 'participants.user': socket.userId },
-        { $set: { 'participants.$.lastOpened': new Date() }} 
-      ).catch(err => console.error('Error updating lastOpened:', err));
-      socket.emit('joined_chat', conversationId);
     });
+
     socket.on('send_message', async (messageData) => {
       try {
         const newMessage = new Message({
@@ -38,16 +36,35 @@ const handleSocketConnection = (io) => {
             }
           },
         ); 
-
-        io.to(messageData.conversationId).emit('new_message', savedMessage);
+        const populatedMessage = await savedMessage.populate('senderId', 'username');
+        const conv = await Conversation.findById(messageData.conversationId).select('participants');
+        if (conv && conv.participants) {
+          for (const participant of conv.participants) {
+            io.to(participant.user.toString()).emit('new_message', populatedMessage.toObject());
+          }
+        }
+        io.to(messageData.conversationId).emit('new_message_private', populatedMessage.toObject());
       } catch (error) {
         console.error('Error sending message:', error);
       }
     });
-    socket.on('leave_chat', (conversationId) => socket.leave(conversationId));
+
+
+    socket.on('leave_chat', async (conversationId) => {
+      await Conversation.updateOne(
+        { _id: conversationId, 'participants.user': socket.userId },
+        { $set: { 'participants.$.lastOpened': new Date() }} 
+      ).catch(err => console.error('Error updating lastOpened:', err));
+      socket.leave(conversationId);
+    });
+
+
     socket.on('disconnect', async () => {
       await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
+      socket.leave(socket.userId);
     });
+
+    
   });
 };
 

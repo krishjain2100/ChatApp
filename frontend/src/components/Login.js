@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import useAuth from '../hooks/useAuth';
 import postLogin from '../api/login';
 import { toast } from 'react-toastify';
 import '../styles/Auth.css';
@@ -9,34 +9,23 @@ const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { login } = useAuth();
+    const { login } = useAuth();  
     const navigate = useNavigate();
+    const handleForgotPassword = useCallback(() => navigate('/forgotPassword'), [navigate]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (username.trim() === '' || password === '') { 
-            toast.error('Username and Password cannot be empty'); 
-            return;
-        }
+        if (username.trim() === '' || password.trim() === '') { toast.error('Username and Password cannot be empty'); return; }
         setIsLoading(true);
         try {
             const data = await postLogin(username, password);
-            if (data?.accessToken) {
-                login(data.accessToken);
-                navigate('/main'); 
-            } else {
-                toast.error('Login failed - Invalid response from server');
-            }
+            if (data?.accessToken) { login(data.accessToken); navigate('/main'); } 
+            else { toast.error('Login failed - Invalid response from server'); }
         } catch (error) {
-            console.error('Login failed:', error);
             toast.error(error.message || 'Login failed. Please check your credentials and try again.');
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleForgotPassword = () => {
-        navigate('/forgotPassword');
     };
 
     return (

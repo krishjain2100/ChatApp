@@ -15,8 +15,7 @@ const postLogin = async (username, password) => {
         return data;
     } 
     catch (error) {
-        console.error('Login error:', error); 
-        throw error; // Re-throw the error so the component can handle it
+        throw error; 
     }
 };
 

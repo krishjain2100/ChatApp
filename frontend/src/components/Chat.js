@@ -1,8 +1,9 @@
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useRef, useCallback} from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import getChat from '../api/chat';
-import { useAuth } from '../contexts/AuthContext';
-import { useSocket } from '../contexts/SocketContext';
+import useAuth from '../hooks/useAuth';
+import useSocket from '../hooks/useSocket';
 import formatTime from '../utils/formatTime';
 import '../styles/Chat.css';
 
@@ -16,62 +17,15 @@ const Chat = () => {
     const { socket } = useSocket();
     const messagesEndRef = useRef(null);
 
-    useEffect(() => {
-        const fetchMessages = async () => {
-            if (!conversationId || !user || !token) {
-                setMessages([]);
-                setConversationInfo(null);
-                return;
-            }
-            const data = await getChat(conversationId, token);
-            if (data.participants) {
-                const otherParticipant = data.participants.find(participant => participant._id !== user.id);
-                const lastSeen = new Date(otherParticipant.lastSeen);
-                const isOnline = lastSeen && (new Date() - lastSeen) < 2 * 60 * 1000; 
-                setConversationInfo({
-                    name: otherParticipant.username,
-                    avatar: otherParticipant.username.charAt(0).toUpperCase(),
-                    lastSeen: lastSeen,
-                    isOnline: isOnline,
-                    lastSeenText: isOnline ? 'Online' : (lastSeen ? `Last seen ${formatTime(lastSeen)}` : '')
-                });
-            }
-            const messages = data.messages || [];
-            setMessages(messages.map(msg => ({
-                id: msg._id,
-                text: msg.content,
-                sender: msg.senderId.username,
-                time: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isMe: msg.senderId._id === user.id
-            })));
-        };
-        fetchMessages();
-    }, [conversationId, user, token]); 
+    const formatMessage = useCallback((message) => ({
+        id: message._id,
+        text: message.content,
+        sender: message.senderId.username || 'Unknown',
+        time: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isMe: message.senderId._id === user.id
+    }), [user.id]);
 
-    useEffect(() => {
-        if (!conversationId || !user || !socket) return;
-        socket.emit('join_chat', conversationId);
-
-        const handleNewMessage = (message) => {
-            const formattedMessage = {
-                id: message._id,
-                text: message.content,
-                sender: message.senderId.username || 'Unknown',
-                time: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                isMe: message.senderId === user.id
-            };
-            setMessages(prev => [...prev, formattedMessage]);
-        };
-
-        socket.on('new_message', handleNewMessage);
-
-        return () => {
-            socket.off('new_message', handleNewMessage);
-            socket.emit('leave_chat', conversationId);
-        };
-    }, [conversationId, user, socket]);
-
-    const sendMessage = () => {
+    const sendMessage = useCallback(() => {
         if (!newMessage.trim() || !socket || !user) return;
         const messageData = {
             conversationId,
@@ -80,14 +34,55 @@ const Chat = () => {
         };
         socket.emit('send_message', messageData);
         setNewMessage('');
-    };
+    }, [newMessage, socket, user, conversationId]);
 
-    const handleKeyPress = (e) =>  {if (e.key === 'Enter') sendMessage()}
-    const scrollToBottom = () =>  messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+
+    const handleKeyPress = useCallback((e) =>  {if (e.key === 'Enter') sendMessage()}, [sendMessage]);
+    const scrollToBottom = useCallback(() =>  messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), []);
+
+    const fetchMessages = useCallback(async () => {
+        if (!conversationId || !user || !token) {
+            setMessages([]);
+            setConversationInfo(null);
+            return;
+        }
+        const data = await getChat(conversationId, token);
+        const otherParticipant = data.participants.find(participant => participant._id !== user.id);
+        const lastSeen = new Date(otherParticipant.lastSeen);
+        const isOnline = lastSeen && (new Date() - lastSeen) < 2 * 60 * 1000; 
+        setConversationInfo({
+            name: otherParticipant.username,
+            avatar: otherParticipant.username.charAt(0).toUpperCase(),
+            lastSeen: lastSeen,
+            isOnline: isOnline,
+            lastSeenText: isOnline ? 'Online' : (lastSeen ? `Last seen ${formatTime(lastSeen)}` : '')
+        });
+        const messages = data.messages || [];
+        setMessages(messages.map(msg => formatMessage(msg)));
+        toast.success('Messages loaded successfully');
+    }, [conversationId, user, token, formatMessage]);
+
+
+    const handleNewMessage = useCallback((message) => {
+        const formattedMessage = formatMessage(message);
+        setMessages(prev => [...prev, formattedMessage]);
+    }, [formatMessage]);
+
+
+    useEffect(() => {
+        if (!conversationId || !user || !socket) return;
+        socket.emit('join_chat', conversationId);
+        fetchMessages();
+        socket.on('new_message_private', handleNewMessage);
+        return () => {
+            socket.off('new_message_private', handleNewMessage);
+            socket.emit('leave_chat', conversationId);
+        };
+    }, [conversationId, user, socket, formatMessage, handleNewMessage, fetchMessages]);
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, scrollToBottom]);
 
     return (
         <div className="conversation-wrapper">
@@ -127,7 +122,7 @@ const Chat = () => {
                             className="message-input"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
+                            onKeyDown={handleKeyPress}
                         />
                         <button className="send-button" onClick={sendMessage}> Send </button>
                     </div>

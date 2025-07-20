@@ -10,7 +10,6 @@ export const API_ENDPOINTS = {
     MESSAGES: `${API_BASE_URL}/message/messages`,
     NEW_CHAT: `${API_BASE_URL}/message/new`,
   },
-  USERS: `${API_BASE_URL}/users`,
 };
 
 export const FRONTEND_URL = process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3001';

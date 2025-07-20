@@ -15,8 +15,7 @@ const getChat = async (conversationId, token) => {
         throw new Error('Failed to fetch messages');
     }
     catch (error) {
-        console.error('Error fetching messages:', error);
-        return [];
+        throw error;
     }
 };
 

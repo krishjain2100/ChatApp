@@ -1,12 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import decodeToken from '../utils/decodeToken';
 
-const AuthContext = createContext();
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    return context;
-};
+export const AuthContext = createContext();
 
 const getAuth = () => {
     const Token = localStorage.getItem('accessToken');
@@ -14,7 +9,7 @@ const getAuth = () => {
         const decoded = decodeToken(Token);
         return { User: decoded, Token };
     }
-    return { User: null, Uoken: null };
+    return { User: null, Token: null };
 };
 
 
@@ -25,25 +20,25 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const storedToken = localStorage.getItem('accessToken');;
-        if (storedToken) {
+        if (storedToken && !user) {
             const decoded = decodeToken(storedToken);
             setUser(decoded);
             setToken(storedToken);
         }
-    }, []);
+    }, [user]);
 
     const login = (accessToken) => {
-        localStorage.setItem('accessToken', accessToken);
         const decoded = decodeToken(accessToken);
         setUser(decoded);
         setToken(accessToken);
+        localStorage.setItem('accessToken', accessToken);
     };
 
     const logout = () => {
+        window.location.href = '/login';
         localStorage.removeItem('accessToken');
         setUser(null);
         setToken(null);
-        window.location.href = '/login';
     };
 
     const value = {

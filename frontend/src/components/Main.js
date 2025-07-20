@@ -1,31 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect} from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Chat from "./Chat";
-import { useAuth } from "../contexts/AuthContext";
+import useAuth from "../hooks/useAuth";
 import '../styles/Main.css';
 
-const Main = () => {
-  const [userData, setUserData] = useState(null);
-  const { user, logout } = useAuth();
 
+const Main = () => {
+  const { user, logout } = useAuth();
   useEffect(() => {
-    if (!user) {
-      logout(); 
-      return; 
-    }
-    setUserData({
-      id: user.id,
-      username: user.username
-    });
+    if (!user) { logout() }
   }, [user, logout]);
 
-  if (!userData) return <p>Loading...</p>;
+  if (!user) return null; // for avoiding rendering after logout
 
   return (
     <div className="main-container">
-      <div className="sidebar">
-        <Header/>
+      <div className="sidebar"> <Header/>
         <div className="chats-container"> <Sidebar /> </div>
       </div>
       <div className="chat-area"> <Chat /> </div>

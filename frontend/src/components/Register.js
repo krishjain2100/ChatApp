@@ -15,19 +15,16 @@ const Register = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (username.trim() === '' || email.trim() === '' || password === '' || confirmPassword === '') { toast.error('All fields are required'); return;}
+        if (username.trim() === '' || email.trim() === '' || password.trim() === '') { toast.error('All fields are required'); return;}
         if (password !== confirmPassword) { toast.error('Passwords do not match'); return; }
         if (!validator.isEmail(email)) {toast.error('Please enter a valid email address'); return;}
         
         setIsLoading(true);
         try {
             const result = await postRegister(username, email, password);
-            if (result.success) {
-                toast.success(result.message);
-                navigate('/login');
-            }
-        } catch (error) {toast.error(error.message || 'Registration failed. Please try again.');} 
-        finally {setIsLoading(false);}
+            if (result.success) { toast.success(result.message); navigate('/login'); }
+        } catch (error) { toast.error(error.message || 'Registration failed. Please try again.'); }
+        finally { setIsLoading(false); }
     };
 
     return (

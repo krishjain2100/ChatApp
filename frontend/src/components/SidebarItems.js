@@ -21,7 +21,7 @@ const SidebarItems = ({chat, handleChatClick, selectedChatId}) => {
                     </div>
                 </div>
                 <div className="chat-footer">
-                    <span className="chat-last-message"> {lastMessage? lastMessageBy + ': ' + lastMessage : 'No message' } </span>
+                    <span className="chat-last-message"> {lastMessage? lastMessageBy + ': ' + lastMessage : 'No messages yet' } </span>
                 </div>
             </div>
         </div>
