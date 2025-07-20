@@ -1,88 +1,61 @@
-import {useState, useEffect, useRef, useCallback} from 'react';
+import { useState, useEffect, useRef, useCallback} from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import getChat from '../api/chat';
 import useAuth from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
-import formatTime from '../utils/formatTime';
+import formatMessage from '../utils/formatMessage';
 import '../styles/Chat.css';
 
 const Chat = () => {
-    const [messages, setMessages] = useState([]);
-    const [conversationInfo, setConversationInfo] = useState(null);
-    const [newMessage, setNewMessage] = useState('');
     const [searchParams] = useSearchParams();
     const conversationId = searchParams.get('conversation');
     const { user, token } = useAuth();
     const { socket } = useSocket();
+    const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef(null);
+    const queryClient = useQueryClient();
+    const { data = {}} = useQuery({
+        queryKey: ['chat', conversationId],
+        queryFn: async () => await getChat(conversationId, token, user),
+        enabled: !!conversationId,
+        staleTime: 1000 * 60 * 5, 
+    });
 
-    const formatMessage = useCallback((message) => ({
-        id: message._id,
-        text: message.content,
-        sender: message.senderId.username || 'Unknown',
-        time: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isMe: message.senderId._id === user.id
-    }), [user.id]);
+    const { conversationInfo, messages = [] } = data || {};
 
-    const sendMessage = useCallback(() => {
-        if (!newMessage.trim() || !socket || !user) return;
+    const handleSendMessage = useCallback(() => {
+        if (!newMessage.trim()) return;
         const messageData = {
             conversationId,
             senderId: user.id,
-            content: newMessage.trim()
+            content: newMessage.trim(),
         };
         socket.emit('send_message', messageData);
         setNewMessage('');
-    }, [newMessage, socket, user, conversationId]);
-
-
-    const handleKeyPress = useCallback((e) =>  {if (e.key === 'Enter') sendMessage()}, [sendMessage]);
-    const scrollToBottom = useCallback(() =>  messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), []);
-
-    const fetchMessages = useCallback(async () => {
-        if (!conversationId || !user || !token) {
-            setMessages([]);
-            setConversationInfo(null);
-            return;
-        }
-        const data = await getChat(conversationId, token);
-        const otherParticipant = data.participants.find(participant => participant._id !== user.id);
-        const lastSeen = new Date(otherParticipant.lastSeen);
-        const isOnline = lastSeen && (new Date() - lastSeen) < 2 * 60 * 1000; 
-        setConversationInfo({
-            name: otherParticipant.username,
-            avatar: otherParticipant.username.charAt(0).toUpperCase(),
-            lastSeen: lastSeen,
-            isOnline: isOnline,
-            lastSeenText: isOnline ? 'Online' : (lastSeen ? `Last seen ${formatTime(lastSeen)}` : '')
-        });
-        const messages = data.messages || [];
-        setMessages(messages.map(msg => formatMessage(msg)));
-        toast.success('Messages loaded successfully');
-    }, [conversationId, user, token, formatMessage]);
-
-
-    const handleNewMessage = useCallback((message) => {
-        const formattedMessage = formatMessage(message);
-        setMessages(prev => [...prev, formattedMessage]);
-    }, [formatMessage]);
-
+    }, [newMessage, conversationId, user.id, socket]);
 
     useEffect(() => {
         if (!conversationId || !user || !socket) return;
+        const handleNewMessage = (message) => {
+            const formatted = formatMessage(message, user.id);
+            queryClient.setQueryData(['chat', conversationId], (oldData) => {
+                if (!oldData) return oldData;
+                const newMessages = [...(oldData.messages || []), formatted];
+                return {...oldData, messages: newMessages};
+            });
+        };
         socket.emit('join_chat', conversationId);
-        fetchMessages();
         socket.on('new_message_private', handleNewMessage);
         return () => {
             socket.off('new_message_private', handleNewMessage);
             socket.emit('leave_chat', conversationId);
         };
-    }, [conversationId, user, socket, formatMessage, handleNewMessage, fetchMessages]);
+    }, [conversationId, user, socket, queryClient]);
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages, scrollToBottom]);
+       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    }, [messages]);
 
     return (
         <div className="conversation-wrapper">
@@ -122,9 +95,9 @@ const Chat = () => {
                             className="message-input"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyDown={handleKeyPress}
+                            onKeyDown={(e) =>  {if (e.key === 'Enter') handleSendMessage()}}
                         />
-                        <button className="send-button" onClick={sendMessage}> Send </button>
+                        <button className="send-button" onClick={handleSendMessage}> Send </button>
                     </div>
                 </>
             )}

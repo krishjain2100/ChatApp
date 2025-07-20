@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from '../config/constants';
-
-const getChats = async (token) => {
+import formatChat from '../utils/formatChat';
+const getChats = async (token, user) => {
     try {
         const response = await fetch(API_ENDPOINTS.MESSAGE.CONVERSATIONS, {
             method: 'GET',
@@ -13,7 +13,8 @@ const getChats = async (token) => {
             throw new Error('Failed to fetch conversations');
         }
         const data = await response.json();
-        return data;
+        const formattedData = data.map(chat => formatChat(chat, user));
+        return formattedData;
     } catch (error) {
         throw error;
     }

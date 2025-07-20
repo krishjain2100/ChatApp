@@ -1,8 +1,8 @@
-import Home from './components/Home';
-import Login from './components/Login';
-import Register from './components/Register';
-import ForgotPassword from './components/ForgotPassword';
-import Main from './components/Main';
+import Home from '../components/Home';
+import Login from '../components/Login';
+import Register from '../components/Register';
+import ForgotPassword from '../components/ForgotPassword';
+import Main from '../components/Main';
 
 const routes = [
   {path: '/', element: <Home/>},

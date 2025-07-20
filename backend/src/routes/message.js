@@ -90,7 +90,8 @@ router.post('/new', async (req, res) => {
     });
     await conversation.save();
     const populatedConversation = await Conversation.findById(conversation._id).populate('participants.user', 'username lastSeen');
-    res.status(201).json(populatedConversation);
+    const flattenedConversation = flattenConversation([populatedConversation])[0];
+    res.status(201).json(flattenedConversation);
 });
 
 
