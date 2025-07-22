@@ -15,6 +15,10 @@ const handleSocketConnection = (io) => {
 
     socket.on('join_chat', async (conversationId) => {
       socket.join(conversationId);
+      await Conversation.updateOne(
+        { _id: conversationId, 'participants.user': socket.userId },
+        { $set: { 'participants.$.lastOpened': new Date() }} 
+      ).catch(err => console.error('Error updating lastOpened:', err));
     });
 
     socket.on('send_message', async (messageData) => {

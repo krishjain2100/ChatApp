@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import postRegister from '../api/register';
 import { toast } from 'react-toastify';
@@ -27,12 +27,12 @@ const Register = () => {
         finally { setIsLoading(false); }
     };
 
-    const fields = [
+    const fields = useMemo(() => [
       { label: "Username", type: "text", value: username, setValue: setUsername, placeholder: "Choose a username" },
       { label: "Email", type: "text", value: email, setValue: setEmail, placeholder: "Enter your email address" },
       { label: "Password", type: "password", value: password, setValue: setPassword, placeholder: "Create a strong password" },
       { label: "Confirm Password", type: "password", value: confirmPassword, setValue: setConfirmPassword, placeholder: "Confirm your password" }
-    ];
+    ], [username, email, password, confirmPassword, setConfirmPassword, setEmail, setPassword, setUsername]);
 
     return (
         <div className="auth-container">

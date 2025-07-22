@@ -1,4 +1,4 @@
-import { useCallback, useState} from 'react';
+import { useCallback, useMemo, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import postLogin from '../api/login';
@@ -28,34 +28,30 @@ const Login = () => {
         }
     };
 
+    const fields = useMemo(() => [
+        { key: 'username', label: 'Username', type: 'text', value: username, setValue: setUsername, placeholder: 'Enter your username' },
+        { key: 'password', label: 'Password', type: 'password', value: password, setValue: setPassword, placeholder: 'Enter your password' },
+    ], [username, password, setUsername, setPassword]);
+
     return (
         <div className="auth-container">
             <div className="auth-card">
                 <h1 className="auth-title">Welcome Back</h1>
                 <p className="auth-subtitle">Sign in to your account</p>
                 <form className="auth-form" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label">Username</label>
-                        <input 
-                            className="form-input"
-                            type="text" 
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter your username"
-                            disabled={isLoading}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Password</label>
-                        <input 
-                            className="form-input"
-                            type="password" 
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            disabled={isLoading}
-                        />
-                    </div>
+                    {fields.map(field => (
+                        <div className="form-group" key={field.key}>
+                            <label className="form-label">{field.label}</label>
+                            <input
+                                className="form-input"
+                                type={field.type}
+                                value={field.value}
+                                onChange={e => field.setValue(e.target.value)}
+                                placeholder={field.placeholder}
+                                disabled={isLoading}
+                            />
+                        </div>
+                    ))}
                     <button 
                         type="submit" 
                         className="auth-button"

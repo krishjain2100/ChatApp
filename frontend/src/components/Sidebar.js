@@ -12,6 +12,8 @@ import formatChat from '../utils/formatChat';
 import SidebarItems from './SidebarItems';
 import NewChatModal from './NewChatModal';
 import '../styles/Chats.css';
+import showNotification from '../utils/notificationToast';
+import playNotificationSound from '../utils/notificationSound';
 
 
 const ERROR_TEXT = 'Failed to create chat. Please try again.';
@@ -67,39 +69,48 @@ const Sidebar = () => {
     useEffect(() => {
         if (!user || !socket) return;
         const handleNewMessage = (message) => { 
-        queryClient.setQueryData(['chats'], (oldData = []) => {
-            const idx = oldData.findIndex(chat => chat._id === message.conversationId);
-            if (idx !== -1) {
-                const updatedChats = oldData.map(chat =>
-                    chat._id === message.conversationId ? {
-                        ...chat,
+            queryClient.setQueryData(['chats'], (oldData = []) => {
+                const idx = oldData.findIndex(chat => chat._id === message.conversationId);
+                if (idx !== -1) {
+                    const updatedChats = oldData.map(chat =>
+                        chat._id === message.conversationId ? {
+                            ...chat,
+                            lastMessage: message.content,
+                            time: formatTime(new Date(message.timestamp)),
+                            unreadCount: message.senderId._id === user.id ? 0 : (chat.unreadCount || 0) + 1,
+                            lastMessageBy: chat.lastMessage ? (message.senderId._id === user.id ? 'You' : message.senderId.username) : '',
+                        } : chat
+                    );
+                    const chatIdx = updatedChats.findIndex(chat => chat._id === message.conversationId);
+                    if (chatIdx > 0) {
+                        const [updated] = updatedChats.splice(chatIdx, 1);
+                        updatedChats.unshift(updated);
+                    }
+                    return updatedChats;
+                } else {
+                    const newChat = {
+                        _id: message.conversationId,
+                        name: message.senderId.username,
                         lastMessage: message.content,
                         time: formatTime(new Date(message.timestamp)),
-                        unreadCount: message.senderId._id === user.id ? 0 : (chat.unreadCount || 0) + 1,
-                        lastMessageBy: chat.lastMessage ? (message.senderId._id === user.id ? 'You' : message.senderId.username) : '',
-                    } : chat
-                );
-                const chatIdx = updatedChats.findIndex(chat => chat._id === message.conversationId);
-                if (chatIdx > 0) {
-                    const [updated] = updatedChats.splice(chatIdx, 1);
-                    updatedChats.unshift(updated);
+                        unreadCount: 1,
+                        lastMessageBy: message.senderId.username,
+                    };
+                    return [newChat, ...oldData];
                 }
-                return updatedChats;
-            } else {
-                const newChat = {
-                    _id: message.conversationId,
-                    name: message.senderId.username,
-                    lastMessage: message.content,
-                    time: formatTime(new Date(message.timestamp)),
-                    unreadCount: 1,
-                    lastMessageBy: message.senderId.username,
-                };
-                return [newChat, ...oldData];
+            });
+            if(document.hidden) playNotificationSound();
+            if((message.conversationId !== searchParams.get('conversation')) && (message.senderId._id !==user.id)) {
+                showNotification(message);
+                queryClient.invalidateQueries(['chat', message.conversationId]);
+            } else if (message.senderId._id ===  user.id) {
+                const sidebar = document.querySelector('.chats-list');
+                sidebar.scrollTo({ top: 0, behavior: 'smooth' });
             }
-        })};
+        }
         socket.on('new_message', handleNewMessage);
         return () => socket.off('new_message', handleNewMessage);
-    }, [user, socket, queryClient]);
+    }, [user, socket, queryClient, searchParams]);
 
     return (
         <>

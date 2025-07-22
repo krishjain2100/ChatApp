@@ -5,6 +5,7 @@
     width: 100%;
     background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
     border-right: 1px solid #e9ecef;
+    min-width: 350px;
 }
 
 .chats-list {
@@ -354,4 +355,23 @@
 .search-input::placeholder {
     color: #6c757d;
     font-weight: 500;
+}
+
+.toast-message-row {
+  display: flex;
+  align-items: center;
+}
+
+.toast-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1976d2;
+  color: #fff;
+  font-weight: 600;
+  margin-right: 10px;
+  font-size: 16px;
 }

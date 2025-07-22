@@ -6,6 +6,7 @@ const ConversationSchema = mongoose.Schema(
             user: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User',
+                index: true,
                 required: true
             },
             lastOpened: {
@@ -23,7 +24,8 @@ const ConversationSchema = mongoose.Schema(
             },
             timestamp: {
                 type: Date,
-                default: Date.now
+                default: Date.now,
+                index: true
             }
         },
     },
@@ -31,5 +33,6 @@ const ConversationSchema = mongoose.Schema(
         timestamps: true 
     }
 );
+ConversationSchema.index({ 'participants.user': 1, 'lastMessage.timestamp': -1 });
 const Conversation = mongoose.model('Conversation', ConversationSchema);
 module.exports = Conversation;

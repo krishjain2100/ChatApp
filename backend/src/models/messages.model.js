@@ -4,7 +4,8 @@ const MessageSchema = mongoose.Schema(
         conversationId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Conversation',
-            required: true
+            required: true,
+            index: true
         },
         senderId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -25,5 +26,6 @@ const MessageSchema = mongoose.Schema(
         timestamps: true 
     }
 );
+MessageSchema.index({ conversationId: 1, timestamp: -1 });
 const Message = mongoose.model('Message', MessageSchema);
 module.exports = Message;

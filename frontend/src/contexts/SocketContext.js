@@ -9,7 +9,7 @@ export const SocketProvider = ({ children }) => {
     const { user, token } = useAuth();
     useEffect(() => {
         if (user && token) {
-            const newSocket = io('http://localhost:3000', { auth: { token: token }});
+            const newSocket = io(process.env.REACT_APP_API_BASE_URL, { auth: { token: token }});
             newSocket.on('connect', () => newSocket.emit('user_online', user.id));
             setSocket(newSocket);
             const heartbeat = setInterval(() => {
