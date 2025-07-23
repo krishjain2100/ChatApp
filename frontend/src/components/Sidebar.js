@@ -11,9 +11,9 @@ import formatTime from '../utils/formatTime';
 import formatChat from '../utils/formatChat';
 import SidebarItems from './SidebarItems';
 import NewChatModal from './NewChatModal';
-import '../styles/Chats.css';
 import showNotification from '../utils/notificationToast';
 import playNotificationSound from '../utils/notificationSound';
+import '../styles/Chats.css';
 
 
 const ERROR_TEXT = 'Failed to create chat. Please try again.';
@@ -42,7 +42,7 @@ const Sidebar = () => {
                 handleClose();
             } else { toast.error(data.message || ERROR_TEXT); }
         },
-        onError: (error) => { toast.error(ERROR_TEXT); }
+        onError: (_error) => { toast.error(ERROR_TEXT); }
     });
 
     const [open, setOpen] = useState(false);
@@ -100,7 +100,7 @@ const Sidebar = () => {
                 }
             });
             if(document.hidden) playNotificationSound();
-            if((message.conversationId !== searchParams.get('conversation')) && (message.senderId._id !==user.id)) {
+            if((message.conversationId !== searchParams.get('conversation')) && (message.senderId._id !== user.id)) {
                 showNotification(message);
                 queryClient.invalidateQueries(['chat', message.conversationId]);
             } else if (message.senderId._id ===  user.id) {

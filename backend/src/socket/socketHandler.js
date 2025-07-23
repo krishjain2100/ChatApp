@@ -40,14 +40,16 @@ const handleSocketConnection = (io) => {
             }
           },
         ); 
-        const populatedMessage = await savedMessage.populate('senderId', 'username');
+        let populatedMessage = await savedMessage.populate('senderId', 'username');
         const conv = await Conversation.findById(messageData.conversationId).select('participants');
+        populatedMessage = populatedMessage.toObject();
         if (conv && conv.participants) {
           for (const participant of conv.participants) {
-            io.to(participant.user.toString()).emit('new_message', populatedMessage.toObject());
+            io.to(participant.user.toString()).emit('new_message', populatedMessage);
           }
         }
-        io.to(messageData.conversationId).emit('new_message_private', populatedMessage.toObject());
+        populatedMessage.tempId = messageData.tempId;
+        io.to(messageData.conversationId).emit('new_message_private', populatedMessage);
       } catch (error) {
         console.error('Error sending message:', error);
       }

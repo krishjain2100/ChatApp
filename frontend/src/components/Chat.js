@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback} from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
+import {v4 as uuidv4} from 'uuid';
 import getChat from '../api/chat';
 import useAuth from '../hooks/useAuth';
 import useSocket from '../hooks/useSocket';
@@ -26,24 +27,55 @@ const Chat = () => {
 
     const handleSendMessage = useCallback(() => {
         if (!newMessage.trim()) return;
+        const tempId = uuidv4();
         const messageData = {
             conversationId,
             senderId: user.id,
             content: newMessage.trim(),
+            tempId: tempId,
         };
+        const message = {
+            id: tempId,
+            text: newMessage.trim(),
+            sender: user.username || 'Unknown',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isMe: true
+        };
+        queryClient.setQueryData(['chat', conversationId], (oldData = { messages: [] }) => {
+            const newMessages = [...oldData.messages, message];
+            return {...oldData, messages: newMessages};
+        });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         socket.emit('send_message', messageData);
         setNewMessage('');
-    }, [newMessage, conversationId, user.id, socket]);
+    }, [newMessage, conversationId, user, socket, queryClient]);
 
     useEffect(() => {
         if (!conversationId || !user || !socket) return;
         const handleNewMessage = (message) => {
-            const formatted = formatMessage(message, user.id);
-            queryClient.setQueryData(['chat', conversationId], (oldData) => {
-                if (!oldData) return oldData;
-                const newMessages = [...(oldData.messages || []), formatted];
-                return {...oldData, messages: newMessages};
-            });
+            const {tempId, ...msg} = message;
+            const formatted = formatMessage(msg, user.id);
+            if(message.senderId._id !== user.id) {
+                queryClient.setQueryData(['chat', conversationId], (oldData = { messages: [] }) => {
+                    const newMessages = [...oldData.messages, formatted];
+                    return {...oldData, messages: newMessages};
+                });
+            } else {
+                queryClient.setQueryData(['chat', conversationId], (oldData = { messages: [] }) => {
+                    const newMessages = [...oldData.messages];
+                    let idx = -1;
+                    for (let i = newMessages.length - 1; i >= Math.max(0, newMessages.length-100); i--) {
+                        if (newMessages[i] && newMessages[i].tempId === tempId) {
+                            idx = i;
+                            break;
+                        }
+                    }
+                    if (idx !== -1) {
+                        newMessages[idx] = formatted;
+                    }
+                    return {...oldData, messages: newMessages};
+                });
+            }
         };
         socket.emit('join_chat', conversationId);
         socket.on('new_message_private', handleNewMessage);
