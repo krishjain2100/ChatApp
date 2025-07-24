@@ -47,6 +47,8 @@ const Chat = () => {
         });
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         socket.emit('send_message', messageData);
+        messageData.timestamp = new Date();
+        window.dispatchEvent(new CustomEvent('chat_message_sent', {detail : messageData}));
         setNewMessage('');
     }, [newMessage, conversationId, user, socket, queryClient]);
 
@@ -70,9 +72,7 @@ const Chat = () => {
                             break;
                         }
                     }
-                    if (idx !== -1) {
-                        newMessages[idx] = formatted;
-                    }
+                    if (idx !== -1) newMessages[idx] = formatted;
                     return {...oldData, messages: newMessages};
                 });
             }

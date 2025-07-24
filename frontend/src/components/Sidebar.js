@@ -25,7 +25,7 @@ const Sidebar = () => {
         queryKey: ['chats'], 
         queryFn: async () => await getChats(token, user), 
         enabled: !!user && !!token,
-        staleTime: Infinity,
+        staleTime: 1000 * 60 * 5, 
     });
     const { mutate: createChat } = useMutation({
         mutationFn: (username) => createNewChat(username, token),
@@ -68,6 +68,35 @@ const Sidebar = () => {
 
     useEffect(() => {
         if (!user || !socket) return;
+        const handleChatMessageSent = (e) => {
+            const messageData = e.detail;
+            queryClient.setQueryData(['chats'], (oldData = []) => {
+                const updatedChats = oldData.map(chat =>
+                    chat._id === messageData.conversationId ? {
+                        ...chat,
+                        lastMessage: messageData.content,
+                        time: formatTime(new Date(messageData.timestamp)),
+                        unreadCount: 0,
+                        lastMessageBy: 'You',
+                    } : chat
+                );
+                const chatIdx = updatedChats.findIndex(chat => chat._id === messageData.conversationId);
+                if (chatIdx > 0) {
+                    const [updated] = updatedChats.splice(chatIdx, 1);
+                    updatedChats.unshift(updated);
+                }
+                return updatedChats;
+            });
+            const sidebar = document.querySelector('.chats-list');
+            if (sidebar) sidebar.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        window.addEventListener('chat_message_sent', handleChatMessageSent);
+        return () => {
+            window.removeEventListener('chat_message_sent', handleChatMessageSent);
+        };
+    }, [user, socket, queryClient]);
+    useEffect(() => {
+        if (!user || !socket) return;
         const handleNewMessage = (message) => { 
             queryClient.setQueryData(['chats'], (oldData = []) => {
                 const idx = oldData.findIndex(chat => chat._id === message.conversationId);
@@ -81,9 +110,8 @@ const Sidebar = () => {
                             lastMessageBy: chat.lastMessage ? (message.senderId._id === user.id ? 'You' : message.senderId.username) : '',
                         } : chat
                     );
-                    const chatIdx = updatedChats.findIndex(chat => chat._id === message.conversationId);
-                    if (chatIdx > 0) {
-                        const [updated] = updatedChats.splice(chatIdx, 1);
+                    if (idx > 0) {
+                        const [updated] = updatedChats.splice(idx, 1);
                         updatedChats.unshift(updated);
                     }
                     return updatedChats;
@@ -109,7 +137,9 @@ const Sidebar = () => {
             }
         }
         socket.on('new_message', handleNewMessage);
-        return () => socket.off('new_message', handleNewMessage);
+        return () => {
+            socket.off('new_message', handleNewMessage);
+        };
     }, [user, socket, queryClient, searchParams]);
 
     return (
